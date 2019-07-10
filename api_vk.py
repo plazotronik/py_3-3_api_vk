@@ -40,23 +40,60 @@ class Uzver:
         self.user_id = resp['id']
         self.family = resp['last_name']
         self.name = resp['first_name']
-        print(f'https://vk.com/id{self.user_id}, {self.family} {self.name}')
 
-    def __and__(self, other):
-        prmtrs = 'friends.getMutual'
+    def getfriends(self):
+        parametrs = {
+            'user_id': self.user_id,
+            'fields': 'nickname',
+            'v': VER,
+            'access_token': ACC_TOKEN,
+        }
+        response = requests.get(url=f'{URL}friends.get', params=parametrs)
+        resp = response.json()['response']['items']
+        for i, rsp in enumerate(resp):
+            print(f'{" " * 3}{i+1}) {rsp["last_name"]} {rsp["first_name"]} - https://vk.com/id{rsp["id"]}')
         pass
 
+    def __and__(self, other):
+        parametrs = {
+            'source_uid': self.user_id,
+            'target_uid': other.user_id,
+            'v': VER,
+            'access_token': ACC_TOKEN,
+        }
+        response = requests.get(url=f'{URL}friends.getMutual', params=parametrs)
+        resp = response.json()['response']
+        # print(resp)
+        for rsp in resp:
+            globals()[f'usr_{rsp}'] = Uzver(rsp)
+        # prmtrs = 'friends.getMutual'
+        # pass
+
     def __str__(self):
-        return f'https://vk.com/id{self.user_id}, {self.family} {self.name}'
+        return f'https://vk.com/id{self.user_id} {self.family} {self.name}'
 
 
+if __name__ == '__main__':
+    pass
 
 
+sungur = Uzver(user_1)
+sergey = Uzver(user_2)
+# iam = Uzver()
+sungur & sergey
+# print(type(sergey.user_id))
 
-sergey = Uzver(2020911)
-
-print(sergey)
-
-
-
-
+# print(sergey)
+# print(sungur)
+#
+#
+# sungur.getfriends()
+# print(f'\n\n{"=" * 90}\n\n')
+# sergey.getfriends()
+# print(f'\n\n{"=" * 90}\n\n')
+# # iam.getfriends()
+#
+# kash = Uzver(7649363).getfriends()
+# print(kash)
+# kash.getfriends()
+#
