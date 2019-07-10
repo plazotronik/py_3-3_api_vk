@@ -40,7 +40,7 @@ class Uzver:
         self.user_id = resp['id']
         self.family = resp['last_name']
         self.name = resp['first_name']
-
+        print(f'https://vk.com/id{self.user_id}, {self.family} {self.name}')
 
     def __and__(self, other):
         prmtrs = 'friends.getMutual'
