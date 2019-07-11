@@ -31,12 +31,18 @@ class Uzver:
     This class is user on site vk.com
     """
     def __init__(self, id):
+        """
+        Создание экземпляра класса.
+        Таймаут на выполнение запроса 0.2 секунды достаточно для вхождения в ограничение 3 запроса в секунду,
+        т.к. дополнительно учитывается время выполнения кода и самого запроса...
+        :param id:
+        """
         parametrs = {
             'user_ids': id,
             'v': VER,
             'access_token': ACC_TOKEN,
         }
-        sleep(0.33)
+        sleep(0.2)
         response = requests.get(url=f'{URL}users.get', params=parametrs)
         resp = response.json()['response'][0]
         self.user_id = resp['id']
@@ -46,15 +52,21 @@ class Uzver:
         self.url = f'https://vk.com/id{self.user_id}'
 
     def getfriends(self):
+        """
+        |||Отсебяшка.||| Делал для проверки requests, хотел удалить, но в итоге оставил.
+        Вывод всех друзей пользователя без создания из них экземпляров класса (ибо время выполнения кода - дорого).
+        Таймаут на выполнение запроса 0.2 секунды достаточно для вхождения в ограничение 3 запроса в секунду,
+        т.к. дополнительно учитывается время выполнения кода и самого запроса...
+        :param id:
+        """
         parametrs = {
             'user_id': self.user_id,
             'fields': 'nickname',
             'v': VER,
             'access_token': ACC_TOKEN,
         }
-        sleep(0.33)
+        sleep(0.2)
         response = requests.get(url=f'{URL}friends.get', params=parametrs)
-        # print(response.json())
         resp = response.json()['response']['items']
         print(f'\nДрузья пользователя {self.fio} ({self.url}):')
         for i, rsp in enumerate(resp):
@@ -62,13 +74,19 @@ class Uzver:
         pass
 
     def __and__(self, other):
+        """
+        Вывод общих друзей двух пользователей и создание из них экземпляров класса.
+        Таймаут на выполнение запроса 0.2 секунды достаточно для вхождения в ограничение 3 запроса в секунду,
+        т.к. дополнительно учитывается время выполнения кода и самого запроса...
+        :param id:
+        """
         parametrs = {
             'source_uid': self.user_id,
             'target_uid': other.user_id,
             'v': VER,
             'access_token': ACC_TOKEN,
         }
-        sleep(0.33)
+        sleep(0.2)
         response = requests.get(url=f'{URL}friends.getMutual', params=parametrs)
         resp = response.json()['response']
         # print(resp)
@@ -78,7 +96,7 @@ class Uzver:
         for ind, rsp in enumerate(resp):
             globals()[f'usr_{rsp}'] = Uzver(rsp)
             # lst_friends.append(str(globals()[f'usr_{rsp}']))
-            lst_friends.append(globals()[f'usr_{rsp}'].__name__())
+            lst_friends.append(globals()[f'usr_{rsp}'].__str__())
             print(f'{" " * 3}{ind+1}) {globals()[f"usr_{rsp}"]}')
             # print(globals()[f'usr_{rsp}'])
             # print(rsp)
@@ -92,7 +110,7 @@ class Uzver:
         # pass
 
     def __str__(self):
-        return f'{self.family} {self.name} - https://vk.com/id{self.user_id}'
+        return f'{self.fio} - {self.url}'
 
 
 if __name__ == '__main__':
@@ -109,15 +127,15 @@ print(usr_13569560)
 # print(sungur)
 #
 #
-# sungur.getfriends()
-# print(f'\n\n{"=" * 90}\n\n')
-# # sergey.getfriends()
-# print(f'\n\n{"=" * 90}\n\n')
+sungur.getfriends()
+print(f'\n\n{"=" * 90}\n\n')
+sergey.getfriends()
+print(f'\n\n{"=" * 90}\n\n')
 # # iam.getfriends()
 #
 print(lst)
 # sungur & sungur
-# kash = Uzver(7649363).getfriends()
+kash = Uzver(7649363).getfriends()
 # print(lst)
 # kash.getfriends()
 #
