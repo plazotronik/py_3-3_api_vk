@@ -9,41 +9,34 @@
 
 import requests
 from time import sleep
+from pprint import pprint
 
-APP_ID = 7049807
+
 URL = 'https://api.vk.com/method/'
 VER = '5.101'
 ACC_TOKEN = 'a4541a46101a30b5b599dac3e32458db2f6732e0b8dd9e01870e7b532a8a289ccee36259cc5e32341a4cb'
 
-# Igor = 'https://vk.com/chaikinigorek'
-# Sungur = 'https://vk.com/id9380940'
-# Sergey = 'https://vk.com/id2020911'
-user_1 = 9380940 # Sungur
-user_2 = 2020911 # Sergey
-
-params = {
-    'v': VER,
-    'access_token': ACC_TOKEN,
-}
 
 class Uzver:
     """
-    This class is user on site vk.com
+    This class is a user on site vk.com
     """
-    def __init__(self, id):
+    def __init__(self, id=10554929):
         """
-        Создание экземпляра класса.
+        Создание экземпляра класса. По-дефолту Я))
+
         Таймаут на выполнение запроса 0.2 секунды достаточно для вхождения в ограничение 3 запроса в секунду,
         т.к. дополнительно учитывается время выполнения кода и самого запроса...
         :param id:
         """
+        method = 'users.get'
         parametrs = {
             'user_ids': id,
             'v': VER,
             'access_token': ACC_TOKEN,
         }
         sleep(0.2)
-        response = requests.get(url=f'{URL}users.get', params=parametrs)
+        response = requests.get(url=f'{URL}{method}', params=parametrs)
         resp = response.json()['response'][0]
         self.user_id = resp['id']
         self.family = resp['last_name']
@@ -55,10 +48,13 @@ class Uzver:
         """
         |||Отсебяшка.||| Делал для проверки requests, хотел удалить, но в итоге оставил.
         Вывод всех друзей пользователя без создания из них экземпляров класса (ибо время выполнения кода - дорого).
+        Возвращает список словарей.
+
         Таймаут на выполнение запроса 0.2 секунды достаточно для вхождения в ограничение 3 запроса в секунду,
         т.к. дополнительно учитывается время выполнения кода и самого запроса...
         :param id:
         """
+        method = 'friends.get'
         parametrs = {
             'user_id': self.user_id,
             'fields': 'nickname',
@@ -66,48 +62,52 @@ class Uzver:
             'access_token': ACC_TOKEN,
         }
         sleep(0.2)
-        response = requests.get(url=f'{URL}friends.get', params=parametrs)
+        response = requests.get(url=f'{URL}{method}', params=parametrs)
         resp = response.json()['response']['items']
         print(f'\nДрузья пользователя {self.fio} ({self.url}):')
         for i, rsp in enumerate(resp):
             print(f'{" " * 3}{i+1}) {rsp["last_name"]} {rsp["first_name"]} - https://vk.com/id{rsp["id"]}')
-        pass
+        return resp
 
     def __and__(self, other):
         """
         Вывод общих друзей двух пользователей и создание из них экземпляров класса.
+        Возвращает словарь.
+
         Таймаут на выполнение запроса 0.2 секунды достаточно для вхождения в ограничение 3 запроса в секунду,
         т.к. дополнительно учитывается время выполнения кода и самого запроса...
         :param id:
         """
-        parametrs = {
+        method = 'friends.getMutual'
+        try:
+            parametrs = {
             'source_uid': self.user_id,
             'target_uid': other.user_id,
             'v': VER,
             'access_token': ACC_TOKEN,
-        }
-        sleep(0.2)
-        response = requests.get(url=f'{URL}friends.getMutual', params=parametrs)
-        resp = response.json()['response']
-        # print(resp)
-        # lst = [globals()[f'usr_{rsp}'] = Uzver(rsp) for rsp in resp]
-        lst_friends = []
-        print(f'\nОбщие друзья у пользователей {self.fio} и {other.fio}:')
-        for ind, rsp in enumerate(resp):
-            globals()[f'usr_{rsp}'] = Uzver(rsp)
-            # lst_friends.append(str(globals()[f'usr_{rsp}']))
-            lst_friends.append(globals()[f'usr_{rsp}'].__str__())
-            print(f'{" " * 3}{ind+1}) {globals()[f"usr_{rsp}"]}')
-            # print(globals()[f'usr_{rsp}'])
-            # print(rsp)
-        # print(lst_friends)
-
-        # print(f'\nОбщие друзья у пользователей {self.fio} и {other.fio}:\n')
-
-        return lst_friends
-
-        # prmtrs = 'friends.getMutual'
-        # pass
+            }
+        except AttributeError:
+            print('\nВы ошиблись в написании одного из пользователей. Проверьте ввод и повторите позднее.')
+        else:
+            if self == other:
+                print('\nСравнивать себя со своим псевдонимом не очень то логично...)) '
+                      '\nДа и займет уйму времени на создание экземпляров класса. '
+                      'Лучше воспользоваться методом .getfriends()\n'
+                      'Например, iam.getfriends() или usr_0000000.getfriends()')
+            else:
+                sleep(0.2)
+                response = requests.get(url=f'{URL}{method}', params=parametrs)
+                resp = response.json()['response']
+                # lst_friends = []
+                dict_friends = {}
+                print(f'\nОбщие друзья у пользователей {self.fio} и {other.fio}:')
+                for ind, rsp in enumerate(resp):
+                    globals()[f'usr_{rsp}'] = Uzver(rsp)
+                    dict_friends.update({f'usr_{rsp}': globals()[f'usr_{rsp}'].__str__()})
+                    # lst_friends.append(globals()[f'usr_{rsp}'].__str__())
+                    print(f'{" " * 3}{ind+1}) usr_{rsp}: {globals()[f"usr_{rsp}"]}')
+                return dict_friends
+                # return lst_friends
 
     def __str__(self):
         return f'{self.fio} - {self.url}'
@@ -117,25 +117,54 @@ if __name__ == '__main__':
     pass
 
 
-sungur = Uzver(user_1)
-sergey = Uzver(user_2)
-# iam = Uzver()
-lst = sungur & sergey
-# print(type(sergey.user_id))
-print(usr_13569560)
-# print(sergey)
-# print(sungur)
-#
-#
-sungur.getfriends()
-print(f'\n\n{"=" * 90}\n\n')
-sergey.getfriends()
-print(f'\n\n{"=" * 90}\n\n')
-# # iam.getfriends()
-#
-print(lst)
-# sungur & sungur
-kash = Uzver(7649363).getfriends()
-# print(lst)
-# kash.getfriends()
-#
+# == ЭКЗЕМПЛЯРЫ КЛАССА ==
+sungur = Uzver(9380940)
+sergey = Uzver(2020911)
+iam = Uzver()
+
+
+# == НАХОЖДЕНИЕ ОБЩИХ ДРУЗЕЙ ==
+frnds = sungur & sergey
+# визуальный разделитель
+print(f'\n\n{"=" * 10}\n')
+print("Возврат результата операции пересечения.\nСловарь вида {'экземпляр класса': 'описание'}\n")
+pprint(frnds)
+# визуальный разделитель
+print(f'\n\n{"=" * 10}\n')
+iam & sungur
+
+
+# == ВЫЗОВ ИСКЛЮЧЕНИЯ И ПЕРЕСЕЧЕНИЕ С ПСЕВДОНИМОМ ==
+# визуальный разделитель
+print(f'\n\n{"=" * 10}\n')
+iam & 000000
+tramp = iam
+iam & tramp
+
+
+# == ВЫВОДИМ ИНФО ОБ ЭКЗЕМПЛЯРЕ КЛАССА ==
+# визуальный разделитель
+print(f'\n\n{"=" * 10}\n')
+print(usr_13569560, '\n') # экземпляр полученный в результате операции пересечения
+print(sergey, '\n')
+print(sungur, '\n')
+print(iam, '\n')
+
+
+# == ВЫВОД ВСЕХ ДРУЗЕЙ ЭКЗЕМПЛЯРА КЛАССА ==
+# sungur.getfriends()
+# # визуальный разделитель
+# print(f'\n\n{"=" * 10}\n')
+
+# usr_13569560.getfriends() # экземпляр полученный в результате операции пересечения
+# # визуальный разделитель
+# print(f'\n\n{"=" * 10}\n')
+
+# sergey.getfriends()
+# # визуальный разделитель
+# print(f'\n\n{"=" * 10}\n')
+
+# friends = iam.getfriends()
+# # визуальный разделитель
+# print(f'\n\n{"=" * 10}\n')
+# pprint(friends)
